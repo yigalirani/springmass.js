@@ -1,7 +1,6 @@
-springmass
-.js==========
+springmass.js
+=============
 
+springs-mass demo using canvas and javscript and the numerical recipes differential equation solver
 
-springs-mass demo using the numerical recipes differential equation solver
-
-demo - javascript versionhttps://symbolclick.com/springmassjs/
+https://symbolclick.com/springmassjs/
