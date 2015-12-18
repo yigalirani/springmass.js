@@ -272,7 +272,6 @@ balls_widget=function(canvasid){
         springs.push({start:_start,end:_end});
     }    
     function init_world(){
-        return;
         add_spring(0,1);
         add_spring(1,2);
         add_spring(2,0);
