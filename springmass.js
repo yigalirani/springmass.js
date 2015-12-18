@@ -73,11 +73,11 @@ function calc_new_frame(balls, springs,radius,timer,width,height){
         //todo: use speed to calc friction
         if (pos+radius>wall_pos){
             is_colide=true;
-            return -(pos+radius-1)*100;
+            return -(pos+radius-wall_pos)*1000;
         }
         if (pos-radius<0){
             is_colide=true;
-            return -(pos-radius+1)*100;
+            return -(pos-radius)*1000;
         }
         return 0;
     }
@@ -167,7 +167,7 @@ function calc_new_frame(balls, springs,radius,timer,width,height){
             var d=new Ball();
             d.pos=p.speed;
             d.speed=wall_power(p);
-            d.speed.y+=100; //gravity
+            d.speed.y+=1000; //gravity
             dballs.push(d);
         }
 
@@ -253,6 +253,7 @@ balls_widget=function(canvasid){
     var selected_ball=-1;
     var dragged_ball=-1;
     var dragged_ball_orig_point;
+    var mouse_speed=new Vec()
     function dist(a,b){
         return Math.sqrt( (a.x-b.x)*(a.x-b.x) + (a.y-b.y)*(a.y-b.y) );
     }
@@ -271,6 +272,7 @@ balls_widget=function(canvasid){
         springs.push({start:_start,end:_end});
     }    
     function init_world(){
+        return;
         add_spring(0,1);
         add_spring(1,2);
         add_spring(2,0);
@@ -297,8 +299,12 @@ balls_widget=function(canvasid){
             return;
         if (balls.length==2)
             console.log("before bug")
+        var new_balls=calc_new_frame(balls, springs,radius,timer,canvas.width,canvas.height);
+        if  (dragged_ball!=-1)
+            new_balls[dragged_ball]=balls[dragged_ball]; //when dragging, dissregard animate results for dragged ball
+        
+        balls=new_balls;
 
-        balls=calc_new_frame(balls, springs,radius,timer,canvas.width,canvas.height);
     }    
     function find_ball(event){
         for (var i=0;i<balls.length;i++)
@@ -318,8 +324,8 @@ balls_widget=function(canvasid){
         dragged_ball=-1;
     }
     function mousedown(event){
-
         mousedown_point=point_from_event(event);
+        mouse_point=mousedown_point;
         dragged_ball=find_ball(mousedown_point);
         if (dragged_ball==-1)
             balls.push(new Ball(mousedown_point));
@@ -328,16 +334,20 @@ balls_widget=function(canvasid){
         }
     }
     function mousemove(event){
+        mouse_point=point_from_event(event);
         if (dragged_ball!=-1){
-            newpoint=point_from_event(event);
+            mouse_speed.x=event.movementX;
+            mouse_speed.y=event.movementY;
+            var newpoint=point_from_event(event);
             newpoint.x-=mousedown_point.x;
             newpoint.y-=mousedown_point.y;
             newpoint.x+=dragged_ball_orig_point.x;
             newpoint.y+=dragged_ball_orig_point.y;
             balls[dragged_ball].pos=newpoint;
+            balls[dragged_ball].speed=mouse_speed.mult(20);
             draw();
+            return;
         }
-        mouse_point=point_from_event(event);
         selected_ball=find_ball(mouse_point);
     }
     function formatxy(p){
@@ -353,8 +363,8 @@ balls_widget=function(canvasid){
         if (origin>500)
             origin=10
         var ctx = canvas.getContext("2d");
-  ctx.canvas.width  = window.innerWidth;
-  ctx.canvas.height = window.innerHeight;
+  ctx.canvas.width  = window.innerWidth-20;
+  ctx.canvas.height = window.innerHeight-20;
           ctx.clearRect(0,0,canvas.width,canvas.height);
 
         ctx.fillStyle = "rgb(0,0,0)";
