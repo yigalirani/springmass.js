@@ -64,7 +64,7 @@ function Timer(){
 
 function calc_new_frame(balls, springs,radius,timer,width,height){
 
-    var STRING_LEN= .4;
+    var STRING_LEN= 100;
     var NUM_STEPS =10;
     var num_balls = balls.length;
     var is_colide=false;
@@ -381,6 +381,16 @@ balls_widget=function(canvasid){
             ctx.fillStyle = 'white';
             ctx.fillText(i,ball.x,ball.y);
         }
+        ctx.setLineDash([3, 3]);
+        for (var i=0;i<springs.length;i++){
+            var a=balls[springs[i].start].pos
+            var b=balls[springs[i].end].pos
+              ctx.beginPath();
+              ctx.moveTo(a.x, a.y);
+              ctx.lineTo(b.x, b.y);
+              ctx.stroke();
+          }
+
     }
     function attach_handlers(){
         canvas.addEventListener("mouseup", mouseup, false);
