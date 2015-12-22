@@ -1,4 +1,7 @@
+
+var balls_widget
 (function (){
+    'use strict';
 function trim(x,min_value,max_value){
     return Math.min(Math.max(x,min_value),max_value); 
 }   
@@ -23,24 +26,24 @@ Vec.prototype.div=function( a){
 Vec.prototype.add=function(right){
     return new Vec(this.x+right.x,this.y+right.y);
 }
-Object.prototype.add_to=function(right){
+Vec.prototype.add_to=function(right){
     this.x+=right.x;
     this.y+=right.y;
 }
-Object.prototype.sub_to=function(right){
+Vec.prototype.sub_to=function(right){
     this.x-=right.x;
     this.y-=right.y;
 }
-Object.prototype.sub=function(right){
+Vec.prototype.sub=function(right){
     return new Vec(this.x-right.x,this.y-right.y);
 }
-Object.prototype.mult=function(scalar){
+Vec.prototype.mult=function(scalar){
     return new Vec(this.x*scalar,this.y*scalar)
 }
-Object.prototype.dot_mult=function(right){
+Vec.prototype.dot_mult=function(right){
     return this.x*right.x+this.y*right.y;
 }
-Object.prototype.calc_dist=function(p2){
+Vec.prototype.calc_dist=function(p2){
     var p1=this;
     return Math.sqrt((p2.x-p1.x)*(p2.x-p1.x)+(p2.y-p1.y)*(p2.y-p1.y));
 }
@@ -60,6 +63,7 @@ function Timer(){
         this.time_diff=Math.min(time-this.cur_time,.05);
         this.cur_time=time;
     }
+    this.mark_time();
 };
 
 function calc_new_frame(balls, springs,radius,timer,width,height){
@@ -237,29 +241,35 @@ function calc_new_frame(balls, springs,radius,timer,width,height){
         for (i=1;i<=n;i++) //Accumulate increments with proper
             yout[i]=y[i]+h6*(dydx[i]+dyt[i]+2.0*dym[i]); //weights.
     }
-    for (i=0;i<NUM_STEPS;i++)
+    for (var i=0;i<NUM_STEPS;i++)
         call_rk4(timer.cur_time,timer.time_diff/NUM_STEPS); //too: acum the time?
     return balls;
 };
+function touchDragged(){
+    this.dragged_ball=-1;
+    this.dragged_ball_offset=new Vec();   
+}
+
 balls_widget=function(canvasid){
     var origin=0;
     var balls=[];
     var radius=40;
-    var mouse_point=new Vec()
     var mousedown_point;
     var springs=[];
     var canvas = document.getElementById(canvasid);
     var timer=new Timer();
-    var selected_ball=-1;
+    var hover_ball=-1;
+    var touchDragged=[]
     var dragged_ball=-1;
-    var dragged_ball_orig_point;
-    var mouse_speed=new Vec()
+    var dragged_ball_offset=new Vec()//pos of dragged ball is mousemove point plus this
+    var ongoingTouches=[];
+    var num_touch_start=0;
     function dist(a,b){
         return Math.sqrt( (a.x-b.x)*(a.x-b.x) + (a.y-b.y)*(a.y-b.y) );
     }
     function init_rand(ball){
-        ball.pos.x=my_rand(-1+2*radius,1-2*radius);
-        ball.pos.y=my_rand(-1+2*radius,1-2*radius);
+        ball.pos.x=my_rand(radius,canvas.width-radius);
+        ball.pos.y=my_rand(radius,canvas.height-radius);
         ball.speed.x=my_rand(-1,1);
         ball.speed.y=my_rand(1,2);
     }
@@ -285,6 +295,9 @@ balls_widget=function(canvasid){
             balls.push(p);
         }
     }    
+    function get_dragged_indexes(){
+        return  _.chain(ongoingTouches).pluck('dragged_ball').push(dragged_ball).without(-1).value()
+    }
     function animate(){
         if(timer.time_diff==0)
             return;//not enought time has passed, dont animate-crach fix
@@ -299,19 +312,20 @@ balls_widget=function(canvasid){
         if (balls.length==2)
             console.log("before bug")
         var new_balls=calc_new_frame(balls, springs,radius,timer,canvas.width,canvas.height);
-        if  (dragged_ball!=-1)
-            new_balls[dragged_ball]=balls[dragged_ball]; //when dragging, dissregard animate results for dragged ball
-        
+        var dragged=get_dragged_indexes();
+        //utils.trace('dragged',dragged)
+        //utils.trace('num ongoing',ongoingTouches.length)
+        _.each(dragged,function(x){
+            new_balls[x]=balls[x]; //when dragging, dissregard animate results for dragged ball
+        })
         balls=new_balls;
 
     }    
     function find_ball(event){
-        for (var i=0;i<balls.length;i++)
-            if (dist(event,balls[i].pos)<radius)
-                return i
-        return -1;
-
-    }
+        return _.findIndex(balls,function(x){
+            return (dist(event,x.pos)<radius)
+        })
+    }    
     function point_from_event(event){
         var rect = canvas.getBoundingClientRect();
         return new Vec (
@@ -323,31 +337,25 @@ balls_widget=function(canvasid){
         dragged_ball=-1;
     }
     function mousedown(event){
-        mousedown_point=point_from_event(event);
-        mouse_point=mousedown_point;
+        var mousedown_point=point_from_event(event);
         dragged_ball=find_ball(mousedown_point);
         if (dragged_ball==-1)
             balls.push(new Ball(mousedown_point));
         else{
-            dragged_ball_orig_point=balls[dragged_ball].pos;
+            dragged_ball_offset=balls[dragged_ball].pos.sub(mousedown_point)
         }
     }
     function mousemove(event){
-        mouse_point=point_from_event(event);
+        var mouse_point=point_from_event(event);
         if (dragged_ball!=-1){
-            mouse_speed.x=event.movementX;
-            mouse_speed.y=event.movementY;
+            var mouse_speed=new Vec(event.movementX,event.movementY);
             var newpoint=point_from_event(event);
-            newpoint.x-=mousedown_point.x;
-            newpoint.y-=mousedown_point.y;
-            newpoint.x+=dragged_ball_orig_point.x;
-            newpoint.y+=dragged_ball_orig_point.y;
-            balls[dragged_ball].pos=newpoint;
+            balls[dragged_ball].pos=newpoint.add(dragged_ball_offset)
             balls[dragged_ball].speed=mouse_speed.mult(20);
             draw();
             return;
         }
-        selected_ball=find_ball(mouse_point);
+        hover_ball=find_ball(mouse_point);
     }
     function formatxy(p){
         return "("+p.x+","+p.y+")";
@@ -362,8 +370,8 @@ balls_widget=function(canvasid){
         if (origin>500)
             origin=10
         var ctx = canvas.getContext("2d");
-  ctx.canvas.width  = window.innerWidth-20;
-  ctx.canvas.height = window.innerHeight-20;
+          ctx.canvas.width  = window.innerWidth-20;
+          ctx.canvas.height = window.innerHeight-20;
           ctx.clearRect(0,0,canvas.width,canvas.height);
 
         ctx.fillStyle = "rgb(0,0,0)";
@@ -373,7 +381,7 @@ balls_widget=function(canvasid){
             var ball=balls[i].pos;
             ctx.arc(ball.x,ball.y,radius,0,Math.PI*2,true);
             ctx.fillStyle = "rgba(0, 0, 200, 0.5)";
-            if (selected_ball==i)
+            if (hover_ball==i)
                 ctx.fillStyle = "rgba(200, 0,0 , 0.5)";
             if (dragged_ball==i)
                  ctx.fillStyle = "rgba(0, 100,200 , 0.5)";
@@ -390,12 +398,78 @@ balls_widget=function(canvasid){
               ctx.lineTo(b.x, b.y);
               ctx.stroke();
           }
+    }
+    function copyTouch(touch) {
+        return { 
+            identifier: touch.identifier,
+            pageX: touch.pageX, 
+            pageY: touch.pageY,
+            dragged_ball:-1,
+            dragged_ball_offset:new Vec(),
+            timer:new Timer()
 
+        };
+    }    
+    function touch_start(evt) {
+        num_touch_start+=1;
+        //utils.trace('num_touch_start',num_touch_start)
+        //utils.trace('ongoingTouches',_.pluck(ongoingTouches,'identifier'))
+        evt.preventDefault();
+        var touches = evt.changedTouches;
+        _.each(touches,function(x){
+            var touch=copyTouch(x)
+            var point=point_from_touch(x);
+            touch.last_pos=point;
+            touch.dragged_ball=find_ball(point);
+            if (touch.dragged_ball==-1)
+                balls.push(new Ball(point));
+            else{
+                touch.dragged_ball_offset=balls[touch.dragged_ball].pos.sub(point)
+            }     
+            ongoingTouches.push(touch);       
+        })
+    }
+    function findTouch(touch) {
+        return _.findIndex(ongoingTouches,{identifier:touch.identifier})
+    }   
+    function point_from_touch(touch){
+        return point_from_event(touch);
+        return new Vec(touch.pageX,touch.pageY)
+    } 
+    function touch_move(evt) {
+        evt.preventDefault();
+        var touches = evt.changedTouches;
+        _.each(touches,function(touch){
+            var idx=findTouch(touch)
+            var exist=ongoingTouches[idx]
+            if (!exist||exist.dragged_ball==-1)
+                return;
+            var pos=point_from_touch(touch).add(exist.dragged_ball_offset)
+            balls[exist.dragged_ball].pos=pos;
+            exist.timer.mark_time();
+            var speed=(pos.sub(exist.last_pos)).div(exist.time_diff)
+            balls[exist.dragged_ball].speed=speed;
+            exist.last_pos=pos;
+            //ongoingTouches.splice(idx, 1, copyTouch(touches[i]));  // swap in the new touch record
+        })
+        draw()
+    }
+    function touch_end(evt) { 
+        evt.preventDefault();
+        _.each(evt.changedTouches,function(touch){
+            var idx=findTouch(touch)
+            if (idx!=-1)
+                ongoingTouches.splice(idx, 1)
+            
+        })
     }
     function attach_handlers(){
         canvas.addEventListener("mouseup", mouseup, false);
         canvas.addEventListener("mousemove", mousemove, false);
         canvas.addEventListener("mousedown", mousedown, false);
+        canvas.addEventListener("touchstart", touch_start, false);
+        canvas.addEventListener("touchmove", touch_move, false);        
+        canvas.addEventListener("touchend", touch_end, false);
         setInterval(draw, 30) 
     }   
     init_world();    
