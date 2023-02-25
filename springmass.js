@@ -43,6 +43,11 @@ var balls_widget;
         var p1 = this;
         return Math.sqrt((p2.x - p1.x) * (p2.x - p1.x) + (p2.y - p1.y) * (p2.y - p1.y));
     };
+    function calc_before_pos(a,b,before){
+      var dist=a.calc_dist(b)
+      var factor=(dist-before)/dist
+      return a.mult(1-factor).add(b.mult(factor))
+    }
 
     function Ball(pos) {
         this.pos = pos || new Vec();
@@ -356,6 +361,13 @@ var balls_widget;
                 ctx.moveTo(a.x, a.y);
                 ctx.lineTo(b.x, b.y);
                 ctx.stroke();
+                ctx.beginPath();
+                //ctx.endPath()
+                var c=calc_before_pos(a,b,radius)
+                ctx.arc(c.x, c.y, 4, 0, Math.PI * 2, true);
+                ctx.fillStyle = 'red';
+                ctx.fill();
+              
             }
         }
 
