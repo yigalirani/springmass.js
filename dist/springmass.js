@@ -356,21 +356,26 @@
         ctx.stroke();
       }
     }
-    function copyTouch(touch) {
-      return {
-        ...touch,
-        dragged_ball: -1,
-        dragged_ball_offset: new Vec(),
-        timer: new Timer(),
-        last_pos: new Vec()
-      };
+    class TouchEx {
+      dragged_ball = -1;
+      dragged_ball_offset = new Vec();
+      timer = new Timer();
+      last_pos = new Vec();
+      identifier;
+      pageX;
+      pageY;
+      constructor(touch) {
+        this.identifier = touch.identifier;
+        this.pageX = touch.pageX;
+        this.pageY = touch.pageY;
+      }
     }
     function touch_start(evt) {
       num_touch_start += 1;
       evt.preventDefault();
       var touches = evt.changedTouches;
       for (const x of touches) {
-        var touch = copyTouch(x);
+        var touch = new TouchEx(x);
         var point = point_from_touch(x);
         touch.last_pos = point;
         touch.dragged_ball = find_ball(point);

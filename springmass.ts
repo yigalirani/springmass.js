@@ -397,25 +397,31 @@ function balls_widget() {
     }
   }
 
-  function copyTouch(touch): TouchEx {
-    return {
-      ...touch,
-      dragged_ball: -1,
-      dragged_ball_offset: new Vec(),
-      timer: new Timer(),
-      last_pos: new Vec(),
-    };
+  class TouchEx {
+    dragged_ball= -1
+    dragged_ball_offset= new Vec()
+    timer= new Timer()
+    last_pos= new Vec()
+    identifier
+    pageX:number
+    pageY:number
+    constructor (touch:Touch){
+      this.identifier=touch.identifier
+      this.pageX=touch.pageX
+      this.pageY=touch.pageY
+    }
   }
+
 
   function touch_start(evt) {
     num_touch_start += 1;
     evt.preventDefault();
     var touches = evt.changedTouches;
     for (const x of touches) {
-      var touch = copyTouch(x);
+      var touch = new TouchEx(x)
       var point = point_from_touch(x);
       touch.last_pos = point;
-      touch.dragged_ball = find_ball(point);
+      touch.dragged_ball = find_ball(point); 
       if (touch.dragged_ball == -1) balls.push(new Ball(point));
       else {
         touch.dragged_ball_offset = balls[touch.dragged_ball].pos.sub(point);
