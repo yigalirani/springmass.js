@@ -47,7 +47,7 @@ function balls_widget() {
   }
   function get_dragged_indexes() {
     // Extract "l" property values from ongoingTouches
-    const indexes = ongoingTouches.map((touch) => (<any>touch).l);
+    const indexes = ongoingTouches.map((touch) => touch.dragged_ball);
     // Add dragged_ball to the array
     indexes.push(dragged_ball);
     // Filter out all -1 values

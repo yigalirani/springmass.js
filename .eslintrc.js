@@ -73,7 +73,7 @@ module.exports = {
             "caughtErrorsIgnorePattern": "^_"
           }],
           "@typescript-eslint/ban-types": "error",
-          "@typescript-eslint/no-explicit-any":"off",
+          //"@typescript-eslint/no-explicit-any":"off",
         },
       }
     ]

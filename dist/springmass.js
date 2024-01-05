@@ -279,7 +279,7 @@
       }
     }
     function get_dragged_indexes() {
-      const indexes = ongoingTouches.map((touch) => touch.l);
+      const indexes = ongoingTouches.map((touch) => touch.dragged_ball);
       indexes.push(dragged_ball);
       const filteredIndexes = indexes.filter((index) => index !== -1);
       return filteredIndexes;

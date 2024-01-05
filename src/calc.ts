@@ -44,7 +44,7 @@ export function calc_new_frame(balls:Ball[], springs:Spring[], radius, timer:Tim
     var ans = npos2.sub(npos1).mult(force);
     return ans;
   }
-  function encode_balls(balls: any[], y: any[] | Float64Array) {
+  function encode_balls(balls: Ball[], y: Ball[] | Float64Array) {
     for (var i = 0; i < num_balls; i++) {
       var p = balls[i];
       y[i * 4 + 1] = p.pos.x;
@@ -112,7 +112,14 @@ export function calc_new_frame(balls:Ball[], springs:Spring[], radius, timer:Tim
     rk4({y, dydx, n:num_balls * 4, x:cur_time, h:time_diff,yout:y});
     balls = decode_balls(y);
   }
-  function rk4({y, dydx, n, x,h, yout}:{y: Float64Array, dydx: Float64Array, n: number, x: any, h: number, yout: Float64Array}) {
+  function rk4({y, dydx, n, x,h, yout}:{
+    y: Float64Array, 
+    dydx: Float64Array, 
+    n: number, 
+    x: number, 
+    h: number, 
+    yout: Float64Array}) 
+  {
     /*translated to java from numerical recipies (see nr.com). here is the original doc:
       Given values for the variables y[1..n] and their derivatives dydx[1..n] known at x, use the
     fourth-order Runge-Kutta method to advance the solution over an interval h and return the
