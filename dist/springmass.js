@@ -252,8 +252,8 @@
       return Math.sqrt((a.x - b.x) * (a.x - b.x) + (a.y - b.y) * (a.y - b.y));
     }
     function init_rand(ball) {
-      ball.pos.x = my_rand(radius, canvas?.width - radius);
-      ball.pos.y = my_rand(radius, canvas?.height - radius);
+      ball.pos.x = my_rand(radius, canvas.width - radius);
+      ball.pos.y = my_rand(radius, canvas.height - radius);
       ball.speed.x = my_rand(-1, 1);
       ball.speed.y = my_rand(1, 2);
     }
