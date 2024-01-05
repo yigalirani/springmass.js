@@ -1,0 +1,16 @@
+{
+  "name": "springmass",
+  "version": "1.0.0",
+  "description": "springmass.js =============",
+  "main": "springmass.js",
+  "dependencies": {
+    "esbuild": "^0.17.8"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "esbuild springmass.ts --bundle --watch --sourcemap --outdir=dist"
+  },
+  "keywords": [], 
+  "author": "",
+  "license": "ISC"
+}
