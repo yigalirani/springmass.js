@@ -1,10 +1,10 @@
 "use strict";
 (() => {
-  // springmass.ts
+  // src/helpers.ts
   function trim(x, min_value, max_value) {
     return Math.min(Math.max(x, min_value), max_value);
   }
-  var Vec = class {
+  var Vec = class _Vec {
     x;
     y;
     constructor(_x = 0, _y = 0) {
@@ -12,16 +12,16 @@
       this.y = _y;
     }
     trim(min_value, max_value) {
-      return new Vec(
+      return new _Vec(
         trim(this.x, min_value, max_value),
         trim(this.y, min_value, max_value)
       );
     }
     div(a) {
-      return new Vec(this.x / a, this.y / a);
+      return new _Vec(this.x / a, this.y / a);
     }
     add(right) {
-      return new Vec(this.x + right.x, this.y + right.y);
+      return new _Vec(this.x + right.x, this.y + right.y);
     }
     add_to(right) {
       this.x += right.x;
@@ -32,10 +32,10 @@
       this.y -= right.y;
     }
     sub(right) {
-      return new Vec(this.x - right.x, this.y - right.y);
+      return new _Vec(this.x - right.x, this.y - right.y);
     }
     mult(scalar) {
-      return new Vec(this.x * scalar, this.y * scalar);
+      return new _Vec(this.x * scalar, this.y * scalar);
     }
     dot_mult = function(right) {
       return this.x * right.x + this.y * right.y;
@@ -72,6 +72,25 @@
       this.mark_time();
     }
   };
+  function new_vector(size) {
+    return new Float64Array(size + 1);
+  }
+  var TouchEx = class {
+    dragged_ball = -1;
+    dragged_ball_offset = new Vec();
+    timer = new Timer();
+    last_pos = new Vec();
+    identifier;
+    pageX;
+    pageY;
+    constructor(touch) {
+      this.identifier = touch.identifier;
+      this.pageX = touch.pageX;
+      this.pageY = touch.pageY;
+    }
+  };
+
+  // src/springmass.ts
   function calc_new_frame(balls, springs, radius, timer, width, height) {
     var STRING_LEN = 100;
     var NUM_STEPS = 10;
@@ -179,9 +198,6 @@
         dballs[s.end].speed.sub_to(spring_power);
       }
       encode_balls(dballs, dy);
-    }
-    function new_vector(size) {
-      return new Float64Array(size + 1);
     }
     function call_rk4(cur_time, time_diff) {
       var y = new_vector(num_balls * 4);
@@ -356,22 +372,8 @@
         ctx.stroke();
       }
     }
-    class TouchEx {
-      dragged_ball = -1;
-      dragged_ball_offset = new Vec();
-      timer = new Timer();
-      last_pos = new Vec();
-      identifier;
-      pageX;
-      pageY;
-      constructor(touch) {
-        this.identifier = touch.identifier;
-        this.pageX = touch.pageX;
-        this.pageY = touch.pageY;
-      }
-    }
     function touch_start(evt) {
-      num_touch_start += 1;
+      num_touch_start = num_touch_start + 1;
       evt.preventDefault();
       var touches = evt.changedTouches;
       for (const x of touches) {

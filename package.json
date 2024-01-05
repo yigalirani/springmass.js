@@ -3,14 +3,40 @@
   "version": "1.0.0",
   "description": "springmass.js =============",
   "main": "springmass.js",
-  "dependencies": {
-    "esbuild": "^0.17.8"
+  "watch": {
+    "eslint": {
+      "extensions": "ts,js,html,css",
+      "quiet": false,
+      "patterns": [
+        "src"
+      ]
+    },
+    "tsc": {
+      "extensions": "ts,js",
+      "quiet": false,
+      "patterns": [
+        "src"
+      ]
+    }
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "esbuild springmass.ts --bundle --watch --sourcemap --outdir=dist"
+    "build": "esbuild src/springmass.ts --bundle --watch --sourcemap --outdir=dist",
+    "eslint": "npx eslint . --format visualstudio",
+    "tsc": "tsc --noEmit",
+    "watch_eslint": "npm-watch eslint",
+    "watch_tsc": "npm-watch tsc"
   },
-  "keywords": [], 
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^5.58.0",
+    "@typescript-eslint/parser": "^5.58.0",
+    "esbuild": "^0.19",
+    "esbuild-plugin-external-global": "^1.0.1",
+    "eslint": "^8.36.0",
+    "npm-watch": "^0.11.0",
+    "typescript": "^5.0.2"
+  },
+  "keywords": [],
   "author": "",
   "license": "ISC"
 }

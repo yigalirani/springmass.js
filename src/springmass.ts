@@ -1,84 +1,10 @@
-/*globals _:false */
 "use strict";
-
-function trim(x, min_value, max_value) {
-  return Math.min(Math.max(x, min_value), max_value);
-}
-class Vec {
-  x: number;
-  y: number;
-  constructor(_x: number = 0, _y: number = 0) {
-    this.x = _x;
-    this.y = _y;
-  }
-  trim(min_value: number, max_value: number) {
-    return new Vec(
-      trim(this.x, min_value, max_value),
-      trim(this.y, min_value, max_value)
-    );
-  }
-  div(a: number) {
-    return new Vec(this.x / a, this.y / a);
-  }
-  add(right: Vec) {
-    return new Vec(this.x + right.x, this.y + right.y);
-  }
-  add_to(right: Vec) {
-    this.x += right.x;
-    this.y += right.y;
-  }
-  sub_to(right: Vec) {
-    this.x -= right.x;
-    this.y -= right.y;
-  }
-  sub(right) {
-    return new Vec(this.x - right.x, this.y - right.y);
-  }
-  mult(scalar) {
-    return new Vec(this.x * scalar, this.y * scalar);
-  }
-  dot_mult = function (right) {
-    return this.x * right.x + this.y * right.y;
-  };
-  calc_dist = function (p2) {
-    var p1 = this;
-    return Math.sqrt(
-      (p2.x - p1.x) * (p2.x - p1.x) + (p2.y - p1.y) * (p2.y - p1.y)
-    );
-  };
-}
-
-class Ball {
-  pos: Vec;
-  speed: Vec;
-  constructor(pos: Vec = new Vec(), speed: Vec = new Vec()) {
-    this.pos = pos;
-    this.speed = speed;
-  }
-}
-function system_time() {
-  return new Date().getTime() / 1000;
-}
-class Timer {
-  cur_time = 0;
-  time_diff = 0;
-  epoch_time = system_time(); //private class member hua
-  mark_time() {
-    var time = system_time() - this.epoch_time;
-    this.time_diff = Math.min(time - this.cur_time, 0.05);
-    this.cur_time = time;
-  }
-  constructor() {
-    this.mark_time();
-  }
-}
-
+import {Ball,Vec,new_vector,Spring,Timer,TouchEx} from './helpers.js'
 function calc_new_frame(balls, springs, radius, timer, width, height) {
   var STRING_LEN = 100;
   var NUM_STEPS = 10;
   var num_balls = balls.length;
   var is_colide = false;
-
   function wall_power2(pos, wall_pos) {
     //todo: use speed to calc friction
     if (pos + radius > wall_pos) {
@@ -91,7 +17,6 @@ function calc_new_frame(balls, springs, radius, timer, width, height) {
     }
     return 0;
   }
-
   function wall_power(p) {
     var ans = new Vec();
     is_colide = false;
@@ -100,7 +25,6 @@ function calc_new_frame(balls, springs, radius, timer, width, height) {
     if (is_colide) ans.sub_to(p.speed.mult(10));
     return ans;
   }
-
   function calc_collide_power(p1, p2, dist) {
     if (dist > radius * 2) return new Vec();
     var speed_diff = p2.speed.sub(p1.speed);
@@ -111,7 +35,6 @@ function calc_new_frame(balls, springs, radius, timer, width, height) {
     var ans = npos2.sub(npos1).mult(force);
     return ans;
   }
-
   function calc_spring_power(p1, p2) {
     var dist = p1.pos.calc_dist(p2.pos);
     var speed_diff = p2.speed.sub(p1.speed);
@@ -122,7 +45,6 @@ function calc_new_frame(balls, springs, radius, timer, width, height) {
     var ans = npos2.sub(npos1).mult(force);
     return ans;
   }
-
   function encode_balls(balls, y) {
     for (var i = 0; i < num_balls; i++) {
       var p = balls[i];
@@ -132,7 +54,6 @@ function calc_new_frame(balls, springs, radius, timer, width, height) {
       y[i * 4 + 4] = p.speed.y;
     }
   }
-
   function decode_balls(y) {
     var ans: Ball[] = [];
     for (var i = 0; i < num_balls; i++) {
@@ -145,17 +66,14 @@ function calc_new_frame(balls, springs, radius, timer, width, height) {
     }
     return ans;
   }
-
   function far_away_fast_calc2(p1, p2, dist) {
     return p2 - p1 > dist || p1 - p2 > dist;
   }
-
   function far_away_fast_calc(p1, p2, dist) {
     if (far_away_fast_calc2(p1.x, p2.x, dist)) return true;
     if (far_away_fast_calc2(p1.y, p2.y, dist)) return true;
     return false;
   }
-
   function the_derive(time, y, dy) {
     //int i;
     var balls = decode_balls(y);
@@ -187,11 +105,6 @@ function calc_new_frame(balls, springs, radius, timer, width, height) {
     }
     encode_balls(dballs, dy);
   }
-
-  function new_vector(size) {
-    return new Float64Array(size + 1);
-  }
-
   function call_rk4(cur_time, time_diff) {
     var y = new_vector(num_balls * 4);
     var dy = new_vector(num_balls * 4);
@@ -200,7 +113,6 @@ function calc_new_frame(balls, springs, radius, timer, width, height) {
     rk4(y, dy, num_balls * 4, cur_time, time_diff, y);
     balls = decode_balls(y);
   }
-
   function rk4(y, dydx, n, x, h, yout) {
     /*translated to java from numerical recipies (see nr.com). here is the original doc:
       Given values for the variables y[1..n] and their derivatives dydx[1..n] known at x, use the
@@ -235,51 +147,36 @@ function calc_new_frame(balls, springs, radius, timer, width, height) {
     call_rk4(timer.cur_time, timer.time_diff / NUM_STEPS); //too: acum the time?
   return balls;
 }
-interface Spring {
-  start: number;
-  end: number;
-}
-interface TouchEx extends Touch {
-  dragged_ball: number;
-  dragged_ball_offset: Vec;
-  last_pos: Vec;
-  timer;
-}
 function balls_widget() {
   //project a global variabl wall_widget
   var origin = 0;
   var balls: Ball[] = [];
   var radius = 40;
   var springs: Spring[] = [];
-  var canvas = document.querySelector('canvas') as HTMLCanvasElement;
+  var canvas = document.querySelector("canvas") as HTMLCanvasElement;
   var timer = new Timer();
   var hover_ball = -1;
   var dragged_ball = -1;
   var dragged_ball_offset = new Vec();
   var ongoingTouches: TouchEx[] = [];
   var num_touch_start = 0;
-
   function dist(a, b) {
     return Math.sqrt((a.x - b.x) * (a.x - b.x) + (a.y - b.y) * (a.y - b.y));
   }
-
   function init_rand(ball) {
     ball.pos.x = my_rand(radius, (<any>canvas)?.width - radius);
     ball.pos.y = my_rand(radius, (<any>canvas)?.height - radius);
     ball.speed.x = my_rand(-1, 1);
     ball.speed.y = my_rand(1, 2);
   }
-
   function my_rand(min: number, max: number) {
     const r = Math.random();
     //r=r%1000;
     return r * (max - min) + min;
   }
-
   function add_spring(_start, _end) {
     springs.push({ start: _start, end: _end });
   }
-
   function init_world() {
     add_spring(0, 1);
     add_spring(1, 2);
@@ -297,16 +194,12 @@ function balls_widget() {
   function get_dragged_indexes() {
     // Extract "l" property values from ongoingTouches
     const indexes = ongoingTouches.map((touch) => (<any>touch).l);
-
     // Add dragged_ball to the array
     indexes.push(dragged_ball);
-
     // Filter out all -1 values
     const filteredIndexes = indexes.filter((index) => index !== -1);
-
     return filteredIndexes;
   }
-
   function animate() {
     if (timer.time_diff === 0) return; //not enought time has passed, dont animate-crach fix
     if (balls.length === 0) return;
@@ -324,22 +217,18 @@ function balls_widget() {
     }
     balls = new_balls;
   }
-
   function find_ball(event) {
     return balls.findIndex(function (x) {
       return dist(event, x.pos) < radius;
     });
   }
-
   function point_from_event(event) {
     var rect = canvas.getBoundingClientRect();
     return new Vec(event.clientX - rect.left, event.clientY - rect.top);
   }
-
   function mouseup() {
     dragged_ball = -1;
   }
-
   function mousedown(event) {
     var mousedown_point = point_from_event(event);
     dragged_ball = find_ball(mousedown_point);
@@ -348,7 +237,6 @@ function balls_widget() {
       dragged_ball_offset = balls[dragged_ball].pos.sub(mousedown_point);
     }
   }
-
   function mousemove(event) {
     var mouse_point = point_from_event(event);
     if (dragged_ball != -1) {
@@ -361,7 +249,6 @@ function balls_widget() {
     }
     hover_ball = find_ball(mouse_point);
   }
-
   function draw() {
     if (!canvas.getContext) return;
     timer.mark_time();
@@ -396,32 +283,15 @@ function balls_widget() {
       ctx.stroke();
     }
   }
-
-  class TouchEx {
-    dragged_ball= -1
-    dragged_ball_offset= new Vec()
-    timer= new Timer()
-    last_pos= new Vec()
-    identifier
-    pageX:number
-    pageY:number
-    constructor (touch:Touch){
-      this.identifier=touch.identifier
-      this.pageX=touch.pageX
-      this.pageY=touch.pageY
-    }
-  }
-
-
   function touch_start(evt) {
-    num_touch_start += 1;
+    num_touch_start=num_touch_start+1;
     evt.preventDefault();
     var touches = evt.changedTouches;
     for (const x of touches) {
-      var touch = new TouchEx(x)
+      var touch = new TouchEx(x);
       var point = point_from_touch(x);
       touch.last_pos = point;
-      touch.dragged_ball = find_ball(point); 
+      touch.dragged_ball = find_ball(point);
       if (touch.dragged_ball == -1) balls.push(new Ball(point));
       else {
         touch.dragged_ball_offset = balls[touch.dragged_ball].pos.sub(point);
@@ -429,7 +299,6 @@ function balls_widget() {
       ongoingTouches.push(touch);
     }
   }
-
   function findTouch(touch) {
     return ongoingTouches.findIndex(function (t) {
       return t.identifier === touch.identifier;
@@ -438,7 +307,6 @@ function balls_widget() {
   function point_from_touch(touch) {
     return point_from_event(touch);
   }
-
   function touch_move(evt) {
     evt.preventDefault();
     var touches = evt.changedTouches;
@@ -455,7 +323,6 @@ function balls_widget() {
     }
     draw();
   }
-
   function touch_end(evt) {
     evt.preventDefault();
     for (const touch of evt.changedTouches) {
@@ -475,5 +342,4 @@ function balls_widget() {
   init_world();
   attach_handlers();
 }
-
-balls_widget()
+balls_widget();
