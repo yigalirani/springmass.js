@@ -90,7 +90,7 @@
     }
   };
 
-  // src/springmass.ts
+  // src/calc.ts
   function calc_new_frame(balls, springs, radius, timer, width, height) {
     var STRING_LEN = 100;
     var NUM_STEPS = 10;
@@ -201,13 +201,13 @@
     }
     function call_rk4(cur_time, time_diff) {
       var y = new_vector(num_balls * 4);
-      var dy = new_vector(num_balls * 4);
+      var dydx = new_vector(num_balls * 4);
       encode_balls(balls, y);
-      the_derive(cur_time, y, dy);
-      rk4(y, dy, num_balls * 4, cur_time, time_diff, y);
+      the_derive(cur_time, y, dydx);
+      rk4({ y, dydx, n: num_balls * 4, x: cur_time, h: time_diff, yout: y });
       balls = decode_balls(y);
     }
-    function rk4(y, dydx, n, x, h, yout) {
+    function rk4({ y, dydx, n, x, h, yout }) {
       var i2;
       var xh, hh, h6;
       var dym = new_vector(n);
@@ -234,6 +234,8 @@
       call_rk4(timer.cur_time, timer.time_diff / NUM_STEPS);
     return balls;
   }
+
+  // src/springmass.ts
   function balls_widget() {
     var origin = 0;
     var balls = [];
