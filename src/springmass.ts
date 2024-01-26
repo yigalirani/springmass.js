@@ -64,7 +64,8 @@ function balls_widget() {
       radius,
       timer,
       canvas?.width,
-      canvas?.height
+      canvas?.height,
+      orientation
     );
     var dragged = get_dragged_indexes();
     for (const x of dragged) {
@@ -117,6 +118,7 @@ function balls_widget() {
     ctx.fillStyle = "rgb(0,0,0)";
     ctx.fill();
     var i;
+    ctx.font = "24px sans-serif"
     for (i = 0; i < balls.length; i++) {
       ctx.beginPath();
       var ball = balls[i].pos;
@@ -126,7 +128,7 @@ function balls_widget() {
       if (dragged_ball == i) ctx.fillStyle = "rgba(0, 100,200 , 0.5)";
       ctx.fill();
       ctx.fillStyle = "white";
-      ctx.fillText(i, ball.x, ball.y);
+      ctx.fillText(i, ball.x-9, ball.y+9);
     }
     ctx.setLineDash([3, 3]);
     for (i = 0; i < springs.length; i++) {

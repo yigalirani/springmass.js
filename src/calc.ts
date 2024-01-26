@@ -1,5 +1,10 @@
-import {Ball,Vec,new_vector,Spring,Timer} from './helpers.js'
-export function calc_new_frame(balls:Ball[], springs:Spring[], radius, timer:Timer, width, height) {
+import {Ball,Vec,new_vector,Spring,Timer,Orientation} from './helpers.js'
+function norm(x){
+  if (Math.abs(x)<2)
+    return 0
+  return x*20
+}
+export function calc_new_frame(balls:Ball[], springs:Spring[], radius, timer:Timer, width, height,orientation:Orientation) {
   var STRING_LEN = 100;
   var NUM_STEPS = 10;
   var num_balls = balls.length;
@@ -83,7 +88,9 @@ export function calc_new_frame(balls:Ball[], springs:Spring[], radius, timer:Tim
       var d = new Ball();
       d.pos = p.speed;
       d.speed = wall_power(p);
-      d.speed.y += 1000; //gravity
+      //d.speed.y += 1000; //gravity
+      d.speed.y+=norm(orientation.beta)
+      d.speed.x+=norm(orientation.gamma)
       dballs.push(d);
     }
     for (i = 0; i < num_balls; i++)

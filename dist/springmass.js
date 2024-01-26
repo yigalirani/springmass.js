@@ -102,12 +102,17 @@
   }
   function render_data({ data, ctx, x, y }) {
     JSON.stringify(data, replacer, 2).split("\n").forEach(
-      (txt, line) => ctx.fillText(txt, x, y + line * 10)
+      (txt, line) => ctx.fillText(txt, x, y + line * 40)
     );
   }
 
   // src/calc.ts
-  function calc_new_frame(balls, springs, radius, timer, width, height) {
+  function norm(x) {
+    if (Math.abs(x) < 2)
+      return 0;
+    return x * 20;
+  }
+  function calc_new_frame(balls, springs, radius, timer, width, height, orientation) {
     var STRING_LEN = 100;
     var NUM_STEPS = 10;
     var num_balls = balls.length;
@@ -193,7 +198,8 @@
         var d = new Ball();
         d.pos = p.speed;
         d.speed = wall_power(p);
-        d.speed.y += 1e3;
+        d.speed.y += norm(orientation.beta);
+        d.speed.x += norm(orientation.gamma);
         dballs.push(d);
       }
       for (i2 = 0; i2 < num_balls; i2++)
@@ -312,7 +318,8 @@
         radius,
         timer,
         canvas?.width,
-        canvas?.height
+        canvas?.height,
+        orientation
       );
       var dragged = get_dragged_indexes();
       for (const x of dragged) {
@@ -368,6 +375,7 @@
       ctx.fillStyle = "rgb(0,0,0)";
       ctx.fill();
       var i;
+      ctx.font = "24px sans-serif";
       for (i = 0; i < balls.length; i++) {
         ctx.beginPath();
         var ball = balls[i].pos;
@@ -379,7 +387,7 @@
           ctx.fillStyle = "rgba(0, 100,200 , 0.5)";
         ctx.fill();
         ctx.fillStyle = "white";
-        ctx.fillText(i, ball.x, ball.y);
+        ctx.fillText(i, ball.x - 9, ball.y + 9);
       }
       ctx.setLineDash([3, 3]);
       for (i = 0; i < springs.length; i++) {

@@ -105,6 +105,6 @@ function replacer(k,v){
 }
 export function render_data({data,ctx,x,y}){
   JSON.stringify(data, replacer, 2).split("\n").forEach(
-    (txt, line) => ctx.fillText(txt,x,y+line*10)
+    (txt, line) => ctx.fillText(txt,x,y+line*40)
   );
 }
