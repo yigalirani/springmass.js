@@ -95,6 +95,16 @@
       this.pageY = touch.pageY;
     }
   };
+  function replacer(k, v) {
+    if (typeof v == "number")
+      return v.toFixed(2);
+    return v;
+  }
+  function render_data({ data, ctx, x, y }) {
+    JSON.stringify(data, replacer, 2).split("\n").forEach(
+      (txt, line) => ctx.fillText(txt, x, y + line * 10)
+    );
+  }
 
   // src/calc.ts
   function calc_new_frame(balls, springs, radius, timer, width, height) {
@@ -369,7 +379,7 @@
           ctx.fillStyle = "rgba(0, 100,200 , 0.5)";
         ctx.fill();
         ctx.fillStyle = "white";
-        ctx.fillText(i + "," + ball.x + "," + ball.y, ball.x, ball.y);
+        ctx.fillText(i, ball.x, ball.y);
       }
       ctx.setLineDash([3, 3]);
       for (i = 0; i < springs.length; i++) {
@@ -381,9 +391,7 @@
         ctx.stroke();
       }
       ctx.fillStyle = "black";
-      JSON.stringify(orientation, null, 2).split("\n").forEach(
-        (txt, y) => ctx.fillText(txt, 100, 100 + y * 10)
-      );
+      render_data({ data: orientation, ctx, x: 100, y: 100 });
     }
     function handleOrientation(event) {
       orientation.absolute = event.absolute;

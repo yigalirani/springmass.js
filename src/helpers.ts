@@ -98,3 +98,13 @@ export class TouchEx {
     this.pageY = touch.pageY;
   }
 }
+function replacer(k,v){
+  if (typeof v=='number')
+    return v.toFixed(2)
+  return v
+}
+export function render_data({data,ctx,x,y}){
+  JSON.stringify(data, replacer, 2).split("\n").forEach(
+    (txt, line) => ctx.fillText(txt,x,y+line*10)
+  );
+}

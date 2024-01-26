@@ -1,5 +1,5 @@
 "use strict";
-import {Ball,Vec,Spring,Timer,TouchEx,Orientation} from './helpers.js'
+import {Ball,Vec,Spring,Timer,TouchEx,Orientation,render_data} from './helpers.js'
 import {calc_new_frame} from './calc.js'
 function balls_widget() {
   //project a global variabl wall_widget
@@ -126,7 +126,7 @@ function balls_widget() {
       if (dragged_ball == i) ctx.fillStyle = "rgba(0, 100,200 , 0.5)";
       ctx.fill();
       ctx.fillStyle = "white";
-      ctx.fillText(i+','+ball.x+','+ball.y, ball.x, ball.y);
+      ctx.fillText(i, ball.x, ball.y);
     }
     ctx.setLineDash([3, 3]);
     for (i = 0; i < springs.length; i++) {
@@ -138,10 +138,7 @@ function balls_widget() {
       ctx.stroke();
     }
     ctx.fillStyle = "black";
-    JSON.stringify(orientation,null,2).split('\n').forEach((txt,y)=>
-      ctx.fillText(txt,100, 100+y*10)
-    )
-
+    render_data({data:orientation,ctx,x:100,y:100})
   }
   function handleOrientation(event) {
     orientation.absolute = event.absolute;
