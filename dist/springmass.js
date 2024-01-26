@@ -55,6 +55,12 @@
       this.speed = speed;
     }
   };
+  var Orientation = class {
+    absolute = 0;
+    alpha = 0;
+    beta = 0;
+    gamma = 0;
+  };
   function system_time() {
     return (/* @__PURE__ */ new Date()).getTime() / 1e3;
   }
@@ -237,6 +243,7 @@
 
   // src/springmass.ts
   function balls_widget() {
+    const orientation = new Orientation();
     var origin = 0;
     var balls = [];
     var radius = 40;
@@ -362,7 +369,7 @@
           ctx.fillStyle = "rgba(0, 100,200 , 0.5)";
         ctx.fill();
         ctx.fillStyle = "white";
-        ctx.fillText(i, ball.x, ball.y);
+        ctx.fillText(i + "," + ball.x + "," + ball.y, ball.x, ball.y);
       }
       ctx.setLineDash([3, 3]);
       for (i = 0; i < springs.length; i++) {
@@ -373,6 +380,16 @@
         ctx.lineTo(b.x, b.y);
         ctx.stroke();
       }
+      ctx.fillStyle = "black";
+      JSON.stringify(orientation, null, 2).split("\n").forEach(
+        (txt, y) => ctx.fillText(txt, 100, 100 + y * 10)
+      );
+    }
+    function handleOrientation(event) {
+      orientation.absolute = event.absolute;
+      orientation.alpha = event.alpha;
+      orientation.beta = event.beta;
+      orientation.gamma = event.gamma;
     }
     function touch_start(evt) {
       num_touch_start = num_touch_start + 1;
@@ -431,6 +448,7 @@
       canvas.addEventListener("touchstart", touch_start, false);
       canvas.addEventListener("touchmove", touch_move, false);
       canvas.addEventListener("touchend", touch_end, false);
+      window.addEventListener("deviceorientation", handleOrientation, true);
       setInterval(draw, 30);
     }
     init_world();

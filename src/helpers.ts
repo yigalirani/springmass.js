@@ -54,6 +54,12 @@ export class Ball {
     this.speed = speed;
   }
 }
+export class Orientation{
+  absolute = 0;
+  alpha = 0;
+  beta = 0;
+  gamma = 0;
+}
 function system_time() {
   return new Date().getTime() / 1000;
 }
