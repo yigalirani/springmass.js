@@ -26,7 +26,7 @@ export function calc_new_frame(balls:Ball[], springs:Spring[], radius, timer:Tim
     is_colide = false;
     ans.x = wall_power2(p.pos.x, width);
     ans.y = wall_power2(p.pos.y, height);
-    if (is_colide) ans.sub_to(p.speed.mult(10));
+    if (is_colide) ans.sub_to(p.speed.mult(2));
     return ans;
   }
   function calc_collide_power(p1: Ball, p2: Ball, dist: number) {
